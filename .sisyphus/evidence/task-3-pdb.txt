@@ -1,0 +1,20 @@
+HEADER    PLANT PROTEIN                           30-APR-81   1CRN              
+TITLE     WATER STRUCTURE OF A HYDROPHOBIC PROTEIN AT ATOMIC RESOLUTION.        
+TITLE    2 PENTAGON RINGS OF WATER MOLECULES IN CRYSTALS OF CRAMBIN             
+COMPND    MOL_ID: 1;                                                            
+COMPND   2 MOLECULE: CRAMBIN;                                                   
+COMPND   3 CHAIN: A;                                                            
+COMPND   4 ENGINEERED: YES                                                      
+SOURCE    MOL_ID: 1;                                                            
+SOURCE   2 ORGANISM_SCIENTIFIC: CRAMBE HISPANICA SUBSP. ABYSSINICA;             
+SOURCE   3 ORGANISM_TAXID: 3721;                                                
+SOURCE   4 STRAIN: SUBSP. ABYSSINICA                                            
+KEYWDS    PLANT SEED PROTEIN, PLANT PROTEIN                                     
+EXPDTA    X-RAY DIFFRACTION                                                     
+AUTHOR    W.A.HENDRICKSON,M.M.TEETER                                            
+REVDAT   9   30-OCT-24 1CRN    1       REMARK                                   
+REVDAT   8   29-NOV-17 1CRN    1       HELIX                                    
+REVDAT   7   11-JUL-12 1CRN    1       SCALE1 VERSN  HEADER                     
+REVDAT   6   24-FEB-09 1CRN    1       VERSN                                    
+REVDAT   5   16-APR-87 1CRN    1       HEADER                                   
+REVDAT   4   04-MAR-85 1CRN    1       REMARK                                   
