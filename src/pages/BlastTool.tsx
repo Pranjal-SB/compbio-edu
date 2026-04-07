@@ -1,5 +1,7 @@
 import { useState } from 'react';
 import { BlastResults } from '../components/BlastResults';
+import { LoadingSpinner } from '../components/LoadingSpinner';
+import { ErrorMessage } from '../components/ErrorMessage';
 
 const SAMPLE_SEQUENCE = `ATGCTAGCTAGCTAGCTAGCATGCTAGCTAGCATGCTAGCTAGCATGCTAGCTAGCATGCTAGCTAGCATGCTAGCTAGCATGCTAGCTAGCATGCTAGCTAGCATGCTAGCTAGCATGCTAGCTAGC`;
 
@@ -24,6 +26,99 @@ function BlastTool() {
   const [results, setResults] = useState<BlastHit[] | null>(null);
   const [error, setError] = useState<string | null>(null);
 
+  const runBlastSearch = async () => {
+    await new Promise(resolve => setTimeout(resolve, 2000));
+    const mockResults: BlastHit[] = [
+      {
+        id: 'NM_001234567',
+        organism: 'Homo sapiens',
+        description: 'BRCA1, DNA repair associated',
+        eValue: 0,
+        identity: 100,
+        alignmentLength: 120,
+        queryStart: 1,
+        queryEnd: 120,
+        subjectStart: 1,
+        subjectEnd: 120
+      },
+      {
+        id: 'XM_009876543',
+        organism: 'Pan troglodytes',
+        description: 'BRCA1-like protein',
+        eValue: 1e-95,
+        identity: 98.5,
+        alignmentLength: 120,
+        queryStart: 1,
+        queryEnd: 120,
+        subjectStart: 1,
+        subjectEnd: 120
+      },
+      {
+        id: 'NM_987654321',
+        organism: 'Mus musculus',
+        description: 'Brca1, DNA repair associated',
+        eValue: 2e-78,
+        identity: 89.2,
+        alignmentLength: 118,
+        queryStart: 1,
+        queryEnd: 119,
+        subjectStart: 1,
+        subjectEnd: 118
+      },
+      {
+        id: 'XM_123456789',
+        organism: 'Danio rerio',
+        description: 'brca1 gene, partial sequence',
+        eValue: 5e-45,
+        identity: 75.8,
+        alignmentLength: 115,
+        queryStart: 3,
+        queryEnd: 117,
+        subjectStart: 1,
+        subjectEnd: 115
+      },
+      {
+        id: 'NM_543216789',
+        organism: 'Drosophila melanogaster',
+        description: 'hypothetical protein similar to BRCA1',
+        eValue: 0.003,
+        identity: 45.2,
+        alignmentLength: 95,
+        queryStart: 10,
+        queryEnd: 105,
+        subjectStart: 5,
+        subjectEnd: 100
+      }
+    ];
+
+    return mockResults;
+  };
+
+  const executeSearch = async () => {
+    if (!sequence.trim()) {
+      setError('Please enter a sequence');
+      return;
+    }
+
+    setLoading(true);
+    setError(null);
+
+    try {
+      const timeoutPromise = new Promise<never>((_, reject) => {
+        setTimeout(() => reject(new Error('BLAST search timed out. Please try again.')), 15000);
+      });
+
+      const mockResults = await Promise.race([runBlastSearch(), timeoutPromise]);
+      setResults(mockResults);
+    } catch (err) {
+      const message = err instanceof Error ? err.message : 'Failed to perform BLAST search';
+      setError(message.includes('timed out') ? 'BLAST search timed out. Please try again.' : 'Could not complete the BLAST search. Check your connection and try again.');
+      setResults(null);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const handleLoadSample = () => {
     setSequence(SAMPLE_SEQUENCE);
   };
@@ -36,83 +131,7 @@ function BlastTool() {
       return;
     }
 
-    try {
-      setLoading(true);
-      setError(null);
-      
-      // Simulate BLAST search with mock data
-      await new Promise(resolve => setTimeout(resolve, 2000));
-      
-      const mockResults: BlastHit[] = [
-        {
-          id: 'NM_001234567',
-          organism: 'Homo sapiens',
-          description: 'BRCA1, DNA repair associated',
-          eValue: 0,
-          identity: 100,
-          alignmentLength: 120,
-          queryStart: 1,
-          queryEnd: 120,
-          subjectStart: 1,
-          subjectEnd: 120
-        },
-        {
-          id: 'XM_009876543',
-          organism: 'Pan troglodytes',
-          description: 'BRCA1-like protein',
-          eValue: 1e-95,
-          identity: 98.5,
-          alignmentLength: 120,
-          queryStart: 1,
-          queryEnd: 120,
-          subjectStart: 1,
-          subjectEnd: 120
-        },
-        {
-          id: 'NM_987654321',
-          organism: 'Mus musculus',
-          description: 'Brca1, DNA repair associated',
-          eValue: 2e-78,
-          identity: 89.2,
-          alignmentLength: 118,
-          queryStart: 1,
-          queryEnd: 119,
-          subjectStart: 1,
-          subjectEnd: 118
-        },
-        {
-          id: 'XM_123456789',
-          organism: 'Danio rerio',
-          description: 'brca1 gene, partial sequence',
-          eValue: 5e-45,
-          identity: 75.8,
-          alignmentLength: 115,
-          queryStart: 3,
-          queryEnd: 117,
-          subjectStart: 1,
-          subjectEnd: 115
-        },
-        {
-          id: 'NM_543216789',
-          organism: 'Drosophila melanogaster',
-          description: 'hypothetical protein similar to BRCA1',
-          eValue: 0.003,
-          identity: 45.2,
-          alignmentLength: 95,
-          queryStart: 10,
-          queryEnd: 105,
-          subjectStart: 5,
-          subjectEnd: 100
-        }
-      ];
-      
-      setResults(mockResults);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to perform BLAST search');
-      setResults(null);
-    } finally {
-      setLoading(false);
-    }
+    await executeSearch();
   };
 
   return (
@@ -198,9 +217,7 @@ function BlastTool() {
         {/* Right Column: Results */}
         <div className="lg:col-span-2">
           {error && (
-            <div className="p-4 mb-6 text-red-700 bg-red-50 rounded-xl border border-red-200">
-              {error}
-            </div>
+            <ErrorMessage message={error} onRetry={() => void executeSearch()} className="mb-6" />
           )}
 
           {!results && !loading && !error && (
@@ -219,11 +236,7 @@ function BlastTool() {
 
           {loading && (
             <div className="bio-card p-12 flex flex-col items-center justify-center min-h-[500px]">
-              <svg className="animate-spin h-10 w-10 text-biology-dna mb-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-              </svg>
-              <p className="text-biology-bark font-medium">Running BLAST search...</p>
+              <LoadingSpinner size="lg" message="Running BLAST search..." />
               <p className="text-biology-bark/70 text-sm mt-2">This may take a few moments</p>
             </div>
           )}

@@ -7,3 +7,6 @@
 - Glossary pages work well as alphabetized accordion lists with search-first filtering; keeping the term data in a separate file makes expansion easy.
 - For biochemistry terms, short 2-3 sentence definitions plus category badges are enough to stay educational without cluttering the layout.
 - The current build has an unrelated TypeScript import error in `src/components/ProteinSearch.tsx`, so glossary changes should be verified separately from the app build until that is fixed.
+- Reusable loading/error UI fits best as small shared components with optional message and retry props; this keeps ProteinSearch, ProteinPrism, and BLAST states visually consistent.
+- Tailwind's built-in `animate-spin` works cleanly with biology palette colors (`biology.dna` / `biology.protein`) for loading states without extra CSS.
+- Retry actions are simplest when they just re-trigger the local fetch/poll flow via a small state toggle or extracted async function.

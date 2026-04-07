@@ -3,6 +3,8 @@ import { ProteinViewer } from '../components/ProteinViewer';
 import { ProteinSearch } from '../components/ProteinSearch';
 import { ProteinInfo } from '../components/ProteinInfo';
 import { fetchStructure } from '../services/pdbApi';
+import { LoadingSpinner } from '../components/LoadingSpinner';
+import { ErrorMessage } from '../components/ErrorMessage';
 
 const FEATURED_PROTEINS = [
   { id: '3I40', name: 'Insulin', desc: 'Hormone regulating blood sugar' },
@@ -15,18 +17,28 @@ function ProteinPrism() {
   const [loading, setLoading] = useState(false);
   const [pdbData, setPdbData] = useState('');
   const [error, setError] = useState<string | null>(null);
+  const [reloadToken, setReloadToken] = useState(0);
+
+  const retryLoadProtein = () => {
+    if (selectedPdbId) {
+      setReloadToken((token) => token + 1);
+    }
+  };
 
   useEffect(() => {
     if (!selectedPdbId) return;
 
     const loadProtein = async () => {
-      try {
-        setLoading(true);
-        setError(null);
-        const result = await fetchStructure(selectedPdbId);
-        setPdbData(result.structureText);
-      } catch (err) {
-        setError(err instanceof Error ? err.message : 'Failed to load protein structure');
+        try {
+          setLoading(true);
+          setError(null);
+          const result = await fetchStructure(selectedPdbId);
+          setPdbData(result.structureText);
+        } catch (err) {
+        const message = err instanceof Error ? err.message : 'Failed to load protein structure';
+        setError(message.toLowerCase().includes('not found') || message.toLowerCase().includes('invalid')
+          ? 'Invalid PDB ID. Please choose a valid structure and try again.'
+          : 'Could not load the protein structure. Please check your connection and try again.');
         setPdbData('');
       } finally {
         setLoading(false);
@@ -34,7 +46,7 @@ function ProteinPrism() {
     };
 
     loadProtein();
-  }, [selectedPdbId]);
+  }, [selectedPdbId, reloadToken]);
 
   return (
     <div className="max-w-7xl mx-auto py-8 px-4">
@@ -82,9 +94,7 @@ function ProteinPrism() {
         {/* Right Column: 3D Viewer */}
         <div className="lg:col-span-2">
           {error && (
-            <div className="p-4 mb-6 text-red-700 bg-red-50 rounded-xl border border-red-200">
-              {error}
-            </div>
+            <ErrorMessage message={error} onRetry={retryLoadProtein} className="mb-6" />
           )}
 
           {!selectedPdbId && !loading && !error && (
@@ -103,11 +113,7 @@ function ProteinPrism() {
 
           {loading && (
             <div className="bio-card p-12 flex flex-col items-center justify-center min-h-[500px]">
-              <svg className="animate-spin h-10 w-10 text-biology-dna mb-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-              </svg>
-              <p className="text-biology-bark font-medium">Loading protein structure...</p>
+              <LoadingSpinner size="lg" message="Loading protein structure..." />
             </div>
           )}
 

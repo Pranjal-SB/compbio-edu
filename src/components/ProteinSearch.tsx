@@ -1,6 +1,8 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { searchProteins } from '../services/pdbApi';
 import type { PdbSearchHit } from '../services/pdbApi';
+import { LoadingSpinner } from './LoadingSpinner';
+import { ErrorMessage } from './ErrorMessage';
 
 interface ProteinSearchProps {
   onSelectProtein: (pdbId: string) => void;
@@ -13,8 +15,7 @@ export function ProteinSearch({ onSelectProtein }: ProteinSearchProps) {
   const [hasSearched, setHasSearched] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const handleSearch = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const handleSearch = async () => {
     if (!query.trim()) return;
 
     setIsSearching(true);
@@ -29,7 +30,10 @@ export function ProteinSearch({ onSelectProtein }: ProteinSearchProps) {
       const hits = await searchProteins(query);
       setResults(hits.slice(0, 10)); // Show top 10
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'An error occurred during search');
+      const message = err instanceof Error ? err.message : 'An error occurred during search';
+      setError(message.toLowerCase().includes('network')
+        ? 'Could not search proteins. Please check your connection and try again.'
+        : 'Protein search failed. Please try again.');
       setResults([]);
     } finally {
       setIsSearching(false);
@@ -38,7 +42,7 @@ export function ProteinSearch({ onSelectProtein }: ProteinSearchProps) {
 
   return (
     <div className="flex flex-col gap-4">
-      <form onSubmit={handleSearch} className="flex gap-2">
+      <form onSubmit={(e) => { e.preventDefault(); void handleSearch(); }} className="flex gap-2">
         <div className="flex-1">
           <label htmlFor="protein-search" className="sr-only">Search Protein</label>
           <input
@@ -56,23 +60,17 @@ export function ProteinSearch({ onSelectProtein }: ProteinSearchProps) {
           disabled={isSearching || !query.trim()}
           className="bio-button whitespace-nowrap disabled:opacity-50 disabled:cursor-not-allowed"
         >
-          {isSearching ? (
-            <span className="flex items-center gap-2">
-              <svg className="animate-spin h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-              </svg>
-              Searching...
-            </span>
-          ) : (
-            'Search'
-          )}
+          {isSearching ? 'Searching...' : 'Search'}
         </button>
       </form>
 
       {error && (
-        <div className="p-3 text-sm text-red-600 bg-red-50 rounded-xl border border-red-100">
-          {error}
+        <ErrorMessage message={error} onRetry={() => void handleSearch()} />
+      )}
+
+      {isSearching && (
+        <div className="py-6">
+          <LoadingSpinner size="md" message="Searching proteins..." />
         </div>
       )}
 
