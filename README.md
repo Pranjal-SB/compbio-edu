@@ -23,7 +23,7 @@ npm install && npm run dev
 
 ## Deployment
 
-Live site: _to be added after Vercel deployment_
+Live site: https://compbio-edu.vercel.app
 
 ## Credits
 
