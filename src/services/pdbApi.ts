@@ -74,22 +74,17 @@ export async function searchProteins(query: string): Promise<PdbSearchHit[]> {
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({
       query: {
-        type: 'group',
-        logical_operator: 'and',
-        nodes: [
-          {
-            type: 'terminal',
-            service: 'text',
-            parameters: {
-              attribute: 'rcsb_entity_source_organism.taxonomy_lineage.name',
-              operator: 'contains_words',
-              value: trimmedQuery,
-            },
-          },
-        ],
+        type: 'terminal',
+        service: 'full_text',
+        parameters: {
+          value: trimmedQuery,
+        },
       },
       return_type: 'entry',
-      request_options: { results_content_type: ['experimental'] },
+      request_options: {
+        results_content_type: ['experimental'],
+        paginate: { rows: 25 },
+      },
     }),
   });
 
